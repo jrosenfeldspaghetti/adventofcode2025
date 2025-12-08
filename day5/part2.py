@@ -3,32 +3,39 @@ from utils import readInput
 def part2():
   (id_ranges, _) = readInput("./sampleInput")
   id_ranges = sorted(id_ranges, key=lambda x: int(x.split("-")[0]))
-  id_count = get_all_numbers_in_range(id_ranges)
+  id_count = merge_ranges_and_get_all_numbers(id_ranges)
+  print(id_count)
   assert id_count == 14
   (id_ranges, _) = readInput("./puzzleInput")
-  id_count = get_all_numbers_in_range(id_ranges)
+  id_ranges = sorted(id_ranges, key=lambda x: int(x.split("-")[0]))
+  id_count = merge_ranges_and_get_all_numbers(id_ranges)
   print(id_count)
 
-# 210542425538309 too low
-# 452125362963180 too high
-def get_all_numbers_in_range(id_ranges):
-  # two scenarios:
-  # the next range starts later than the previous but there is overlap
-  #  the end may or may not be farther than before
-  # the next range has no overlap. It starts higher than the previous end
-
-  # in the first case, we just add the diff between the pointer and the end
-  # in the second case, we just add the diff between the pointer and the start
-  id_count = 0
-  pointer = 0
+def merge_ranges_and_get_all_numbers(id_ranges):
+  current_start = -1
+  current_end = -1
+  merged_ranges = []
   for id_range in id_ranges:
     start, end = id_range.split("-")
-    if pointer < int(end):
-      count_increase = (int(end) + 1) - max(int(start), pointer)
-    pointer = max(pointer, int(end) + 1)
-    print(f"increasing by {count_increase} from range {id_range} with pointer set at {pointer}")
-    id_count += count_increase
-  return id_count
+    start = int(start)
+    end = int(end)
+    if current_end == -1:
+      current_start = start
+      current_end = end
+      continue
+    if start <= current_end:
+      if end > current_end:
+        current_end = end
+    else:
+      # we've merged this range all we can
+      merged_ranges.append((current_start, current_end))
+      current_start = start
+      current_end = end
+  merged_ranges.append((current_start, current_end))
+  return sum((end - start + 1) for (start, end) in merged_ranges)
+
+
+
 
 if __name__ == "__main__":
   part2()
